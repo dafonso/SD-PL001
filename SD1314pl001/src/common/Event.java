@@ -5,23 +5,38 @@
  */
 package common;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
  *
+ *
  * @author Emanuel
  */
-public class Event implements Serializable {
+@DatabaseTable(tableName = "Event")
+public class Event {
 
+    @DatabaseField(generatedId = true)
     private int id;
+    @DatabaseField()
     private Date start;
+    @DatabaseField()
     private Date end;
+    @DatabaseField()
     private String title;
+    @DatabaseField()
     private String description;
+    @DatabaseField()
     private Date createdAt;
+    @DatabaseField()
     private Date modifiedAt;
 
+    public Event(){
+        
+    }
+    
     public Event(Date start, Date end, String title, String description) {
         this.start = start;
         this.end = end;
