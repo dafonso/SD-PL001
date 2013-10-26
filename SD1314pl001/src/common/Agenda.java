@@ -6,24 +6,29 @@
 
 package common;
 
-import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
  * @author Emanuel
  */
 public class Agenda {
-    private Collection<Event> events;
+    private Set<Event> events;
 
-    public Agenda(Collection<Event> events) {
+    public Agenda(Set<Event> events) {
         this.events = events;
     }
 
-    public Collection<Event> getEvents() {
+    public Agenda() {
+        this.events = new HashSet<>();
+    }
+
+    public Set<Event> getEvents() {
         return events;
     }
 
-    public void setEvents(Collection<Event> events) {
+    public void setEvents(Set<Event> events) {
         this.events = events;
     }       
 }
