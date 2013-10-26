@@ -16,7 +16,7 @@ import java.util.Date;
  * @author Emanuel
  */
 @DatabaseTable(tableName = "Event")
-public class Event {
+public class Event implements Serializable{
 
     @DatabaseField(generatedId = true)
     private int id;
