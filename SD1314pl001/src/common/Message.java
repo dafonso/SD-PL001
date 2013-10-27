@@ -14,13 +14,19 @@ import java.util.Date;
  */
 public class Message implements Serializable {
 
-    private final MessageType type;
+    private MessageType type;
     private final Date timestamp;
-    private final Serializable data;
+    private Serializable data;
 
     public Message(MessageType type, Serializable data) {
         this.type = type;
         this.data = data;
+        this.timestamp = new Date();
+    }
+
+    public Message() {
+        this.data = null;
+        this.type = null;
         this.timestamp = new Date();
     }
 
@@ -30,5 +36,13 @@ public class Message implements Serializable {
 
     public Serializable getData() {
         return data;
+    }
+
+    public void setType(MessageType type) {
+        this.type = type;
+    }
+
+    public void setData(Serializable data) {
+        this.data = data;
     }
 }
