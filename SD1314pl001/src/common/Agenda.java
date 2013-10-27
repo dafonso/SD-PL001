@@ -28,6 +28,10 @@ public class Agenda {
         return events;
     }
 
+    /**
+     * 
+     * @param events 
+     */
     public void setEvents(Set<Event> events) {
         this.events = events;
     }       
