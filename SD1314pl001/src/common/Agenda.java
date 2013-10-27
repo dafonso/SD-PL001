@@ -24,6 +24,10 @@ public class Agenda {
         this.events = new HashSet<>();
     }
 
+    /**
+     * 
+     * @return 
+     */
     public Set<Event> getEvents() {
         return events;
     }
