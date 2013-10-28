@@ -134,7 +134,12 @@ public class Server {
 
     private ArrayList<Event> findEvents(Event event) throws SQLException {
         Context context = new Context();
-        ArrayList<Event> result = new ArrayList(context.getEventDao().queryForMatching(event));
+        ArrayList<Event> result = null;
+        if (event==null){
+            result = new ArrayList(context.getEventDao().queryForAll());
+        }else{
+            result = new ArrayList(context.getEventDao().queryForMatching(event));
+        }
         context.close();
         return result;
     }
