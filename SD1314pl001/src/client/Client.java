@@ -12,8 +12,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-
-
+import java.util.Set;
 /**
  *
  * @author João
@@ -59,22 +58,47 @@ public class Client {
         return event;
     }
 
-    public void processRececeivedMsg(Message msg) {
+    public void processMessage(Message m) {
+        try {
+            this.out.writeObject(m);
+        } catch (IOException ex) {
+            System.err.println("Error sending message");
+        }
+        try {
+            m = (Message) this.in.readObject();
+            processReceivedMessage(m);
+        } 
+        catch (ClassNotFoundException c) {
+            System.err.println("Server sent an invalid object");
+        } 
+        catch (IOException e) {
+            System.err.println("Error reading response message");
+        }
+    }
+    public void processReceivedMessage(Message msg) {
         switch (msg.getType()) {
             case SCAdd:
-
+                setAgenda();
                 break;
             case SCUpdate:
-
+                setAgenda();
                 break;
             case SCDelete:
-
+                if(msg.getData() == 1){
+                    System.out.println("O evento foi apagado com sucesso!");
+                    setAgenda();
+                }
+                else
+                    System.out.println("Ocorreu um erro e o evento não foi apagado!");
                 break;
             case SCFind:
-
+                agenda.setEvents((Set<Event>) msg.getData());
                 break;
 
         }
+    }
+    public void setAgenda (){
+        processMessage(findEvent(null));
     }
 
     public String showAgenda() {

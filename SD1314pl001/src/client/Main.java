@@ -1,6 +1,7 @@
 package client;
 
 import common.Event;
+import common.Message;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,6 +41,8 @@ public class Main {
     private static void mainLoop(Client client) throws ParseException {
         System.out.println("1 - Ver Agenda\n2- Marcar Evento\n3 - Alterar Evento\n"
                 + "4 - Apagar Evento\n5 - Procurar Evento\n6 - Terminar ");
+        Message m = new Message();
+        client.setAgenda();
         int task = s.nextInt();
         while (task != 6) {
             switch (task) {
@@ -48,7 +51,7 @@ public class Main {
                     break;
                 case 2:
                     Event e = new Event(convertString2Date(s.next()), convertString2Date(s.next()), s.next(), s.next());
-                    client.addEvent(e);
+                    m = client.addEvent(e);
                     client.showAgenda();
                     break;
                 case 3:
@@ -59,17 +62,17 @@ public class Main {
                             + "3 - Titulo\n4 - Descrição");
                     Event event = buildEvent(s.nextInt());
                     event.setId(id);
-                    client.updateEvent(event);
+                    m = client.updateEvent(event);
                     break;
                 case 4:
                     client.showAgenda();
                     System.out.println("Escolha o evento a apagar?");
-                    client.deleteEvent(s.nextInt());
+                    m = client.deleteEvent(s.nextInt());
                     break;
                 case 5:
                     System.out.println("Pesquisar por:\n1 - Data Inicio\n2- Data Inicio\n"
                             + "3 - Titulo\n4 - Descrição");
-                    client.findEvent(buildEvent(s.nextInt()));
+                    m = client.findEvent(buildEvent(s.nextInt()));
                     break;
                 default:
                     System.out.println("Invalid option");
