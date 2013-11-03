@@ -84,7 +84,7 @@ public class Client {
                 setAgenda();
                 break;
             case SCDelete:
-                if(msg.getData() == 1){
+                if((boolean)msg.getData()){
                     System.out.println("O evento foi apagado com sucesso!");
                     setAgenda();
                 }
