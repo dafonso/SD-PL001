@@ -66,6 +66,8 @@ public class Server {
 
                 // Process message
                 Message response = processMessage((Message) ois.readObject());
+                
+                System.out.println("response :"+response);
 
                 // Send response
                 OutputStream os = connectionSocket.getOutputStream();
@@ -77,6 +79,7 @@ public class Server {
                 os.close();
                 ois.close();
                 is.close();
+                connectionSocket.close();
             } catch (UnknownHostException e) {
             } catch (IOException e) {
             }

@@ -101,4 +101,13 @@ public class Event implements Serializable{
     public void setModifiedAt(Date modifiedAt) {
         this.modifiedAt = modifiedAt;
     }
+    
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder("event ");
+        sb.append(id).append(" - ");
+        sb.append(title);                
+        return sb.toString();
+        
+    }
 }
