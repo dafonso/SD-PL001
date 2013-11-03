@@ -2,6 +2,8 @@ package client;
 
 import common.Event;
 import common.Message;
+import common.properties.CommonProps;
+import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,19 +19,19 @@ public class Main {
     /**
      * Host name of the server.
      */
-    static private String serverHostName;
+    static private String hostName;
     /**
      * Port number where the server is listening.
      */
-    static private int serverPortNumber;
+    static private int portNumber;
     private static Scanner s;
 
     public static void main(String[] args) throws ParseException {
         s = new Scanner(System.in);
-        serverHostName = args[0];
-        serverPortNumber = Integer.valueOf(args[1]);
         try {
-            Client client = new Client(serverHostName, serverPortNumber);
+            hostName = InetAddress.getLocalHost().getHostAddress();
+            portNumber = CommonProps.getServerPort();
+            Client client = new Client(hostName, portNumber);
             mainLoop(client);
         } catch (java.net.UnknownHostException e) {
             System.err.println("Error connecting to server");
