@@ -18,7 +18,7 @@ import java.util.Date;
 @DatabaseTable(tableName = "Event")
 public class Event implements Serializable{
 
-    @DatabaseField(generatedId = true)
+    @DatabaseField(generatedId = true,allowGeneratedIdInsert = true)
     private int id;
     @DatabaseField()
     private Date start;

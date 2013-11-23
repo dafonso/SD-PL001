@@ -38,5 +38,6 @@ public class Agenda {
      */
     public void setEvents(Set<Event> events) {
         this.events = events;
-    }       
+    }
+    
 }

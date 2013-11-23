@@ -114,7 +114,8 @@ public class Server {
         Context context = new Context();
         Date now = new Date();
         event.setCreatedAt(now);
-        event.setModifiedAt(now);
+        event.setModifiedAt(now);   
+        event.setId(0);
         context.getEventDao().create(event);
         context.close();
         return event;
