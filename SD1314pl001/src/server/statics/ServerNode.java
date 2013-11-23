@@ -5,10 +5,9 @@
  */
 package server.statics;
 
-import common.Agenda;
 import common.Event;
-import java.net.ServerSocket;
 import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -17,6 +16,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
 import java.util.TimerTask;
 import server.Context;
 import server.EventLog;
@@ -33,10 +33,7 @@ public class ServerNode implements RemoteBullyPassiveNode {
     private NodeProperties self;
     private NodeState master;
     private List<NodeState> pool;
-    /*private final String host;
-     private int port;
-     private ServerSocket serverSocket;
-     private final Agenda agenda;*/
+    private Timer mcTimer;
 
     public ServerNode() {
         state = ServerState.outOfDate;
@@ -68,95 +65,138 @@ public class ServerNode implements RemoteBullyPassiveNode {
     }
 
     @Override
-    public void election(long id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void election(long id) throws RemoteException {
+        if (state == ServerState.upAndRunning) {
+            this.holdElection();
+        }
     }
 
     @Override
-    public void coordinator(long id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void coordinator(long id) throws RemoteException {
+        for (NodeState server : pool) {
+            if (server.getId() == id) {
+                master = server;
+                System.out.println("new master is " + server.getKey());
+            }
+        }
     }
 
     @Override
-    public void alive() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void alive() throws RemoteException {
+        /*if (state != ServerState.upAndRunning || state != ServerState.inElection) {
+         throw new RemoteException("Server out of date!");
+         }*/
     }
 
     public void holdElection() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        state = ServerState.inElection;
+        int count = 0;
+        for (NodeState server : pool) {
+            if (server.getId() > self.getId()) {
+                try {
+                    count++;
+                    Registry registry = LocateRegistry.getRegistry(server.getHostname(), server.getPortNumber());
+                    RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(server.getKey());
+                    stub.election(self.getId());
+                } catch (RemoteException | NotBoundException e) {
+                    count--;
+                    System.err.println(e);
+                }
+            }
+        }
+        if (count == 0) {
+            for (NodeState server : pool) {
+                try {
+                    Registry registry = LocateRegistry.getRegistry(server.getHostname(), server.getPortNumber());
+                    RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(server.getKey());
+                    stub.coordinator(self.getId());
+                    if (mcTimer != null) {
+                        mcTimer.cancel();
+                    }
+                    mcTimer = null;
+                } catch (RemoteException | NotBoundException e) {
+                    System.err.println(e);
+                }
+            }
+        }
+        state = ServerState.upAndRunning;
     }
 
     @Override
-    public void executeRequest(EventLog log) {
+    public void executeRequest(EventLog log) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void getUpdated(EventLog lastLog) {
+    public void getUpdated(EventLog lastLog) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public NodeState getMasterServer() {
+    public NodeState getMasterServer() throws RemoteException {
         return this.master;
     }
 
     @Override
-    public Event create(Event event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public boolean update(Event event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public boolean delete(Event event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Event> find(Event event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    private Event addEvent(Event event) throws SQLException {
-        Context context = new Context();
-        Date now = new Date();
-        event.setCreatedAt(now);
-        event.setModifiedAt(now);
-        event.setId(0);
-        context.getEventDao().create(event);
-        context.close();
-        return event;
-    }
-
-    private Event updateEvent(Event event) throws SQLException {
-        Context context = new Context();
-        event.setModifiedAt(new Date());
-        context.getEventDao().update(event);
-        context.close();
-        return event;
-    }
-
-    private boolean deleteEvent(Event event) throws SQLException {
-        Context context = new Context();
-        int result = context.getEventDao().delete(event);
-        context.close();
-        return result == 1;
-    }
-
-    private ArrayList<Event> findEvents(Event event) throws SQLException {
-        Context context = new Context();
-        ArrayList<Event> result = null;
-        if (event == null) {
-            result = new ArrayList(context.getEventDao().queryForAll());
-        } else {
-            result = new ArrayList(context.getEventDao().queryForMatching(event));
+    public Event create(Event event) throws RemoteException {
+        try {
+            Context context = new Context();
+            Date now = new Date();
+            event.setCreatedAt(now);
+            event.setModifiedAt(now);
+            event.setId(0);
+            context.getEventDao().create(event);
+            context.close();
+            return event;
+        } catch (SQLException e) {
+            System.err.println(e);
+            return null;
         }
-        context.close();
-        return result;
+    }
+
+    @Override
+    public boolean update(Event event) throws RemoteException {
+        try {
+            Context context = new Context();
+            event.setModifiedAt(new Date());
+            int result = context.getEventDao().update(event);
+            context.close();
+            return result == 1;
+        } catch (SQLException e) {
+            System.err.println(e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean delete(Event event) throws RemoteException {
+        try {
+            Context context = new Context();
+            int result = context.getEventDao().delete(event);
+            context.close();
+            return result == 1;
+        } catch (SQLException e) {
+            System.err.println(e);
+            return false;
+        }
+    }
+
+    @Override
+    public List<Event> find(Event event) throws RemoteException {
+        try {
+            Context context = new Context();
+            ArrayList<Event> result;
+            if (event == null) {
+                result = new ArrayList(context.getEventDao().queryForAll());
+            } else {
+                result = new ArrayList(context.getEventDao().queryForMatching(event));
+            }
+            context.close();
+            return result;
+        } catch (SQLException e) {
+            System.err.println(e);
+            return null;
+        }
     }
 
     public void registerRMI() {
@@ -176,12 +216,28 @@ public class ServerNode implements RemoteBullyPassiveNode {
         }
     }
 
+    public void setMasterCheckup() {
+        mcTimer = new Timer();
+        mcTimer.schedule(new MasterCheckup(), 10 * 1000, 10 * 1000);
+    }
+
     private class MasterCheckup extends TimerTask {
+
+        private MasterCheckup() {
+        }
 
         @Override
         public void run() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            if (master != null) {
+                try {
+                    System.out.println("Master Checkup : " + master.getKey());
+                    Registry registry = LocateRegistry.getRegistry(master.getHostname(), master.getPortNumber());
+                    RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(master.getKey());
+                    stub.alive();
+                } catch (Exception ex) {
+                    holdElection();
+                }
+            }
         }
-
     }
 }

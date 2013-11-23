@@ -47,6 +47,9 @@ public class Main {
             }
         }
         obj.registerRMI();
-        obj.holdElection();
+        obj.holdElection();           
+        obj.setMasterCheckup();
+        String master = obj.getMaster()==null?"me":obj.getMaster().getKey();
+        System.out.println("Server "+obj.getSelf().getKey()+" => "+master);
     }
 }
