@@ -5,7 +5,7 @@
  */
 package server.statics;
 
-import common.Message;
+import common.RemoteClientProtocol;
 import server.EventLog;
 import server.pool.RemoteNode;
 
@@ -13,7 +13,7 @@ import server.pool.RemoteNode;
  *
  * @author Emanuel
  */
-public interface RemoteBullyPassiveNode extends RemoteNode {
+public interface RemoteBullyPassiveNode extends RemoteNode,RemoteClientProtocol {
 
     // Bully
     public void election(long id);
@@ -24,5 +24,10 @@ public interface RemoteBullyPassiveNode extends RemoteNode {
     public void executeRequest(EventLog log);
     
     public void getUpdated(EventLog lastLog);
+    
+    public RemoteBullyPassiveNode getMasterServer();
+    
+
+    
     
 }

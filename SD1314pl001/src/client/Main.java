@@ -27,6 +27,7 @@ public class Main {
 
     public static void main(String[] args) throws ParseException {
         s = new Scanner(System.in);
+        String[][] pool = CommonProps.getServerPool();
         try {
             hostName = InetAddress.getLocalHost().getHostAddress();
             portNumber = CommonProps.getServerPort();
