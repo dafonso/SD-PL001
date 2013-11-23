@@ -6,7 +6,9 @@
 package server.statics;
 
 import common.RemoteClientProtocol;
+import java.rmi.RemoteException;
 import server.EventLog;
+import server.pool.NodeState;
 import server.pool.RemoteNode;
 
 /**
@@ -16,16 +18,16 @@ import server.pool.RemoteNode;
 public interface RemoteBullyPassiveNode extends RemoteNode,RemoteClientProtocol {
 
     // Bully
-    public void election(long id);
+    public void election(long id) throws RemoteException;
 
-    public void coordinator(long id);
+    public void coordinator(long id) throws RemoteException;
     
     // Passive
-    public void executeRequest(EventLog log);
+    public void executeRequest(EventLog log) throws RemoteException;
     
-    public void getUpdated(EventLog lastLog);
+    public void getUpdated(EventLog lastLog) throws RemoteException;
     
-    public RemoteBullyPassiveNode getMasterServer();
+    public NodeState getMasterServer() throws RemoteException;
     
 
     

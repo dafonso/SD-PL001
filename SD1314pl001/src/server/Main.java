@@ -6,11 +6,14 @@
 package server;
 
 import common.properties.CommonProps;
-import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+import java.rmi.RemoteException;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import server.pool.NodeProperties;
+import server.pool.NodeState;
+import server.statics.RemoteBullyPassiveNode;
+import server.statics.ServerNode;
 
 /**
  *
@@ -18,13 +21,32 @@ import java.util.logging.Logger;
  */
 public class Main {
 
-    public static void main(String args[]) throws UnknownHostException, SQLException {
-        Server server = new Server(CommonProps.getServerHost(), CommonProps.getServerPort());
-        try {
-            server.startServerSocket();
-        } catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public static void main(String args[]) throws UnknownHostException, SQLException, MalformedURLException, RemoteException {
 
+        String[][] pool = CommonProps.getServerPool();
+        ServerNode obj = new ServerNode();
+        for (String[] serverInfo : pool) {
+            if (args[0].equals(serverInfo[2])) {
+                NodeProperties prop = new NodeProperties(Long.parseLong(serverInfo[2]), serverInfo[0],
+                        Integer.parseInt(serverInfo[1]), serverInfo[3]);
+                obj.setSelf(prop);
+            } else {
+                NodeState state = new NodeState(Long.parseLong(serverInfo[2]), serverInfo[0],
+                        Integer.parseInt(serverInfo[1]), serverInfo[3]);
+                RemoteBullyPassiveNode server = new ServerNode();
+                state.setObject(server);
+                obj.getPool().add(state);
+                if (obj.getMaster() == null) {
+                    try {
+                        server.alive();
+                        obj.setMaster(server.getMasterServer());
+                    } catch (RemoteException e) {
+                        System.out.println("Server " + state.getKey() + " is not alive!");
+                    }
+                }
+            }
+        }
+        obj.registerRMI();
+        obj.holdElection();
     }
 }

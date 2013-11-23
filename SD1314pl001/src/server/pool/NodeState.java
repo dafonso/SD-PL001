@@ -21,4 +21,12 @@ public class NodeState<T extends RemoteNode> extends NodeProperties {
     public boolean reconnect(){
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    public T getObject() {
+        return object;
+    }
+
+    public void setObject(T object) {
+        this.object = object;
+    }    
 }

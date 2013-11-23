@@ -6,20 +6,21 @@
 
 package common;
 
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.List;
-import server.statics.RemoteBullyPassiveNode;
 
 /**
  *
  * @author Emanuel
  */
-public interface RemoteClientProtocol {
+public interface RemoteClientProtocol extends Remote{
         // Client Remote Methods    
-    public Event create(Event event);
+    public Event create(Event event) throws RemoteException;
     
-    public boolean update(Event event);
+    public boolean update(Event event) throws RemoteException;
     
-    public boolean delete(Event event);
+    public boolean delete(Event event) throws RemoteException;
     
-    public List<Event> find(Event event);
+    public List<Event> find(Event event) throws RemoteException;
 }

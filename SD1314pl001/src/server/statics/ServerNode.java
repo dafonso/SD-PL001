@@ -5,9 +5,20 @@
  */
 package server.statics;
 
+import common.Agenda;
 import common.Event;
+import java.net.ServerSocket;
+import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.TimerTask;
+import server.Context;
 import server.EventLog;
 import server.pool.NodeProperties;
 import server.pool.NodeState;
@@ -22,6 +33,39 @@ public class ServerNode implements RemoteBullyPassiveNode {
     private NodeProperties self;
     private NodeState master;
     private List<NodeState> pool;
+    /*private final String host;
+     private int port;
+     private ServerSocket serverSocket;
+     private final Agenda agenda;*/
+
+    public ServerNode() {
+        state = ServerState.outOfDate;
+        pool = new ArrayList<>();
+    }
+
+    public NodeProperties getSelf() {
+        return self;
+    }
+
+    public void setSelf(NodeProperties self) {
+        this.self = self;
+    }
+
+    public List<NodeState> getPool() {
+        return pool;
+    }
+
+    public void setPool(List<NodeState> pool) {
+        this.pool = pool;
+    }
+
+    public NodeState getMaster() {
+        return master;
+    }
+
+    public void setMaster(NodeState master) {
+        this.master = master;
+    }
 
     @Override
     public void election(long id) {
@@ -35,11 +79,11 @@ public class ServerNode implements RemoteBullyPassiveNode {
 
     @Override
     public void alive() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private void holdElection() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void holdElection() {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -53,8 +97,8 @@ public class ServerNode implements RemoteBullyPassiveNode {
     }
 
     @Override
-    public RemoteBullyPassiveNode getMasterServer() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public NodeState getMasterServer() {
+        return this.master;
     }
 
     @Override
@@ -75,6 +119,61 @@ public class ServerNode implements RemoteBullyPassiveNode {
     @Override
     public List<Event> find(Event event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private Event addEvent(Event event) throws SQLException {
+        Context context = new Context();
+        Date now = new Date();
+        event.setCreatedAt(now);
+        event.setModifiedAt(now);
+        event.setId(0);
+        context.getEventDao().create(event);
+        context.close();
+        return event;
+    }
+
+    private Event updateEvent(Event event) throws SQLException {
+        Context context = new Context();
+        event.setModifiedAt(new Date());
+        context.getEventDao().update(event);
+        context.close();
+        return event;
+    }
+
+    private boolean deleteEvent(Event event) throws SQLException {
+        Context context = new Context();
+        int result = context.getEventDao().delete(event);
+        context.close();
+        return result == 1;
+    }
+
+    private ArrayList<Event> findEvents(Event event) throws SQLException {
+        Context context = new Context();
+        ArrayList<Event> result = null;
+        if (event == null) {
+            result = new ArrayList(context.getEventDao().queryForAll());
+        } else {
+            result = new ArrayList(context.getEventDao().queryForMatching(event));
+        }
+        context.close();
+        return result;
+    }
+
+    public void registerRMI() {
+        try { //Fazer o registo para o porto desejado 
+            LocateRegistry.createRegistry(self.getPortNumber());
+            System.out.println("RMI registry ready.");
+        } catch (RemoteException e) {
+            System.out.println("Exception starting RMI registry: " + e);
+        }
+        try {
+            RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) UnicastRemoteObject.exportObject(this, 0);
+            Registry registry = LocateRegistry.getRegistry(self.getPortNumber());
+            registry.bind(self.getKey(), stub);
+            System.err.println("Server Ready");
+        } catch (AlreadyBoundException | RemoteException e) {
+            System.err.println("Server exception : " + e);
+        }
     }
 
     private class MasterCheckup extends TimerTask {

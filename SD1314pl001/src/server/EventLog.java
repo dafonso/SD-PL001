@@ -8,13 +8,14 @@ package server;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import common.Event;
+import java.io.Serializable;
 
 /**
  *
  * @author Emanuel
  */
 @DatabaseTable(tableName = "EventLog")
-public class EventLog {
+public class EventLog implements Serializable {
 
     @DatabaseField(generatedId = true, allowGeneratedIdInsert = true)
     private int id;

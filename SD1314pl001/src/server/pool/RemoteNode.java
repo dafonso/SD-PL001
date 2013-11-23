@@ -6,6 +6,7 @@
 package server.pool;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 /**
  *
@@ -13,5 +14,5 @@ import java.rmi.Remote;
  */
 public interface RemoteNode extends Remote {
 
-    public void alive();
+    public void alive() throws RemoteException;
 }
