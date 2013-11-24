@@ -76,6 +76,7 @@ public class ServerNode implements RemoteBullyPassiveNode {
         for (NodeState server : pool) {
             if (server.getId() == id) {
                 master = server;
+                this.setMasterCheckup();
                 System.out.println("new master is " + server.getKey());
             }
         }
@@ -110,14 +111,16 @@ public class ServerNode implements RemoteBullyPassiveNode {
                     Registry registry = LocateRegistry.getRegistry(server.getHostname(), server.getPortNumber());
                     RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(server.getKey());
                     stub.coordinator(self.getId());
-                    if (mcTimer != null) {
-                        mcTimer.cancel();
-                    }
-                    mcTimer = null;
                 } catch (RemoteException | NotBoundException e) {
                     System.err.println(e);
                 }
             }
+            if (mcTimer != null) {
+                mcTimer.cancel();
+            }
+            mcTimer = null;
+            master = null;
+            System.out.println(self.getKey() + " says: Im the new master");
         }
         state = ServerState.upAndRunning;
     }
@@ -211,14 +214,25 @@ public class ServerNode implements RemoteBullyPassiveNode {
             Registry registry = LocateRegistry.getRegistry(self.getPortNumber());
             registry.bind(self.getKey(), stub);
             System.err.println("Server Ready");
-        } catch (AlreadyBoundException | RemoteException e) {
+        } catch (AlreadyBoundException e) {
+            try {
+                RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) UnicastRemoteObject.exportObject(this, 0);
+                Registry registry = LocateRegistry.getRegistry(self.getPortNumber());
+                registry.rebind(self.getKey(), stub);
+                System.err.println("Server exception : " + e);
+            } catch (RemoteException ex) {
+                System.err.println("Server exception : " + ex);
+            }
+        } catch (RemoteException e) {
             System.err.println("Server exception : " + e);
         }
     }
 
     public void setMasterCheckup() {
-        mcTimer = new Timer();
-        mcTimer.schedule(new MasterCheckup(), 10 * 1000, 10 * 1000);
+        if (mcTimer == null) {
+            mcTimer = new Timer();
+            mcTimer.schedule(new MasterCheckup(), 10 * 1000, 10 * 1000);
+        }
     }
 
     private class MasterCheckup extends TimerTask {
@@ -228,15 +242,13 @@ public class ServerNode implements RemoteBullyPassiveNode {
 
         @Override
         public void run() {
-            if (master != null) {
-                try {
-                    System.out.println("Master Checkup : " + master.getKey());
-                    Registry registry = LocateRegistry.getRegistry(master.getHostname(), master.getPortNumber());
-                    RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(master.getKey());
-                    stub.alive();
-                } catch (Exception ex) {
-                    holdElection();
-                }
+            try {
+                System.out.println("Master Checkup : " + master.getKey());
+                Registry registry = LocateRegistry.getRegistry(master.getHostname(), master.getPortNumber());
+                RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(master.getKey());
+                stub.alive();
+            } catch (NotBoundException | RemoteException ex) {
+                holdElection();
             }
         }
     }
