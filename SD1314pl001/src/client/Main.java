@@ -1,9 +1,6 @@
 package client;
 
 import common.Event;
-import common.Message;
-import common.properties.CommonProps;
-import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -18,32 +15,22 @@ public class Main {
     /**
      * Host name of the server.
      */
-    static private String hostName;
+    //static private String hostName;
     /**
      * Port number where the server is listening.
      */
-    static private int portNumber;
+    //static private int portNumber;
     private static Scanner s;
 
     public static void main(String[] args) throws ParseException {
         s = new Scanner(System.in);
-        String[][] pool = CommonProps.getServerPool();
-        try {
-            hostName = InetAddress.getLocalHost().getHostAddress();
-            portNumber = CommonProps.getServerPort();
-            Client client = new Client(hostName, portNumber);
-            mainLoop(client);
-        } catch (java.net.UnknownHostException e) {
-            System.err.println("Error connecting to server");
-        } catch (java.io.IOException e) {
-            System.err.println("Error opening read and write streams");
-        }
+        Client client = new Client();
+        mainLoop(client);
     }
 
     private static void mainLoop(Client client) throws ParseException {
         System.out.println("1 - Ver Agenda\n2- Marcar Evento\n3 - Alterar Evento\n"
                 + "4 - Apagar Evento\n5 - Procurar Evento\n6 - Terminar ");
-        Message m = new Message();
         int task = s.nextInt();
         while (task != 6) {
             switch (task) {
@@ -53,8 +40,7 @@ public class Main {
                     break;
                 case 2:
                     Event e = new Event(convertString2Date(s.next()), convertString2Date(s.next()), s.next(), s.next());
-                    m = client.addEvent(e);
-                    client.processMessage(m);
+                    client.addEvent(e);
                     client.setAgenda();
                     System.out.println(client.showAgenda());
                     break;
@@ -66,22 +52,19 @@ public class Main {
                             + "3 - Titulo\n4 - Descrição");
                     Event event = buildEvent(s.nextInt());
                     event.setId(id);
-                    m = client.updateEvent(event);
-                    client.processMessage(m);
+                    client.updateEvent(event);
                     client.setAgenda();
                     break;
                 case 4:
                     System.out.println(client.showAgenda());
                     System.out.println("Escolha o evento a apagar?");
-                    m = client.deleteEvent(s.nextInt());
-                    client.processMessage(m);
+                    client.deleteEvent(s.nextInt());
                     client.setAgenda();
                     break;
                 case 5:
                     System.out.println("Pesquisar por:\n1 - Data Inicio\n2 - Data Fim\n"
                             + "3 - Titulo\n4 - Descrição");
-                    m = client.findEvent(buildEvent(s.nextInt()));
-                    client.processMessage(m);
+                    client.findEvent(buildEvent(s.nextInt()));
                     System.out.println(client.showAgenda());
                     break;
                 default:

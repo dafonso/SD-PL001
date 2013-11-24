@@ -6,15 +6,16 @@ package client;
 
 import common.Agenda;
 import common.Event;
-import common.Message;
-import common.MessageType;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
+import common.properties.CommonProps;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import server.statics.RemoteBullyPassiveNode;
+
 
 /**
  *
@@ -26,32 +27,67 @@ public class Client {
     //final private ObjectOutputStream out;
     //final private ObjectInputStream in;
     private Agenda agenda;
-    private String host;
-    private int port;
+    //private String host;
+    //private int port;
+    private String[][] serverPool;
+    private RemoteBullyPassiveNode clientStub;
 
-    public Client(String hostname, int portNumber) throws java.net.UnknownHostException, IOException {
-        this.host = hostname;
-        this.port = portNumber;
+    public Client()  {
+        this.serverPool = CommonProps.getServerPool();
+        //this.host = hostname;
+        //this.port = portNumber;
 //        this.socket = new Socket(hostname, portNumber);
 //        this.out = new ObjectOutputStream(this.socket.getOutputStream());
         //      this.in = new ObjectInputStream(this.socket.getInputStream());
         this.agenda = new Agenda();
+        System.out.println("A iniciar o Cliente...");// Vamos tentar aceder ao Servidor de Registos para recolher a interface
+        try {
+            connect2MasterServer();
+        } catch (NoSuchServerOn e) {
+            System.out.println("Falhou o arranque do Cliente");
+            System.out.println("Não existe nenhum servidor ligado!!");
+            System.exit(0);
+        }
     }
 
-    public Message addEvent(Event e) {
-        return new Message(MessageType.CSAdd, e);
+    private void connect2MasterServer() throws NoSuchServerOn {
+        int i = 0;
+        while (i < serverPool.length) {
+            String getMasterName;
+            Registry registry;
+            try {
+                registry = LocateRegistry.getRegistry(serverPool[i][0]);
+                RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(serverPool[i][3]);
+                getMasterName = stub.getMasterServer().getKey();
+                this.clientStub = (RemoteBullyPassiveNode) registry.lookup(getMasterName);
+            } catch (RemoteException | NotBoundException ex) {
+                System.out.println("Não é possível aceder ao servidor");
+                i++;
+            }
+        }
+        throw new NoSuchServerOn();
     }
 
-    public Message updateEvent(Event e) {
-        return new Message(MessageType.CSUpdate, e);
+    public void addEvent(Event e) throws RemoteException {
+        clientStub.create(e);
     }
 
-    public Message deleteEvent(int id) {
-        return new Message(MessageType.CSDelete, getEvent(id));
+    public void updateEvent(Event e) throws RemoteException {
+       if(clientStub.update(e))
+           System.out.println("O evento foi actualizado com sucesso!");
+        else
+           System.out.println("Ocorreu um erro e o evento não foi actualizado!"); 
     }
 
-    public Message findEvent(Event e) {
-        return new Message(MessageType.CSFind, e);
+    public void deleteEvent(int id) throws RemoteException {
+        if(clientStub.delete(id))
+           System.out.println("O evento foi apagado com sucesso!");
+        else
+           System.out.println("Ocorreu um erro e o evento não foi apagado!"); 
+    }
+
+    public List<Event> findEvent(Event e) throws RemoteException {
+        return clientStub.find(e);
     }
 
     public Event getEvent(int id) {
@@ -65,57 +101,8 @@ public class Client {
         return event;
     }
 
-    public void processMessage(Message m) {
-        //      this.in = new ObjectInputStream(this.socket.getInputStream());
-
-        try {
-            Socket socket = new Socket(host, port);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            out.writeObject(m);
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-            Message result = (Message) in.readObject();
-            processReceivedMessage(result);
-        } catch (Exception ex) {
-            System.err.println("Error sending message");
-        }
-        /*
-         try {
-         //   m = (Message) this.in.readObject();
-         processReceivedMessage(m);
-         } 
-         catch (ClassNotFoundException c) {
-         System.err.println("Server sent an invalid object");
-         } 
-         catch (IOException e) {
-         System.err.println("Error reading response message");
-         }*/
-    }
-
-    public void processReceivedMessage(Message msg) {
-        switch (msg.getType()) {
-            case SCAdd:
-                setAgenda();
-                break;
-            case SCUpdate:
-                setAgenda();
-                break;
-            case SCDelete:
-                if ((boolean) msg.getData()) {
-                    System.out.println("O evento foi apagado com sucesso!");
-                    setAgenda();
-                } else {
-                    System.out.println("Ocorreu um erro e o evento não foi apagado!");
-                }
-                break;
-            case SCFind:
-                agenda.setEvents(new HashSet((ArrayList<Event>) msg.getData()));
-                break;
-
-        }
-    }
-
-    public void setAgenda() {
-        processMessage(findEvent(null));
+    public void setAgenda() throws RemoteException {
+        agenda.setEvents(new HashSet((ArrayList<Event>) findEvent(null)));
     }
 
     public String showAgenda() {
