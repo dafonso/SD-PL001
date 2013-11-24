@@ -46,7 +46,7 @@ public class Client {
             String getMasterName;
             Registry registry;
             try {
-                registry = LocateRegistry.getRegistry(serverPool[i][0]);
+                registry = LocateRegistry.getRegistry(serverPool[i][0], Integer.parseInt(serverPool[i][1]));
                 RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(serverPool[i][3]);
                 getMasterName = stub.getMasterServer().getKey();
                 this.clientStub = (RemoteBullyPassiveNode) registry.lookup(getMasterName);
