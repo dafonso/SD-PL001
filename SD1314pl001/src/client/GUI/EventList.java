@@ -6,21 +6,13 @@
 package client.GUI;
 
 import client.Client;
-import common.Agenda;
 import common.Event;
 import common.Message;
-import common.properties.CommonProps;
 import java.awt.Color;
-import java.awt.TextField;
-import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -41,28 +33,17 @@ public class EventList extends javax.swing.JFrame
 	"Alterado Em"
     };
 
-    private Client client;
+    private final Client client;
     private String hostName;
     private int portNumber;
 
     public EventList()
     {
 	initComponents();
-	try
-	{
-	    hostName = InetAddress.getLocalHost().getHostAddress();
-	    portNumber = CommonProps.getServerPort();
-	    client = new Client(hostName, portNumber);
-	} catch (java.net.UnknownHostException e)
-	{
-	    System.err.println("Error connecting to server");
-	} catch (java.io.IOException e)
-	{
-	    System.err.println("Error opening read and write streams");
-	}
 
+	client = new Client();
 	client.setAgenda();
-	populateEventTable(client.getAgenda());
+	populateEventTable(client.findEvent(null));
 
     }
 
@@ -337,8 +318,7 @@ public class EventList extends javax.swing.JFrame
 	    if (textFieldID.getText().equals(""))
 	    {
 		e = new Event(dataInicio, dateFim, titulo, descricao);
-		//TODO: ir buscar feedback
-		//m = client.addEvent(e);
+		client.addEvent(e);
 		labelFeedback.setText("Evento criado com sucesso");
 	    }
 	    else
@@ -364,18 +344,16 @@ public class EventList extends javax.swing.JFrame
 	    textFieldTitulo.setText("");
 	    textAreaDescricao.setText("");
 	    //refresh results table
-	    populateEventTable(client.getAgenda());
+	    populateEventTable(client.findEvent(null));
 
 	} catch (ParseException ex)
 	{
 	    labelFeedback.setText("Erro ao criar Evento. O formato da data é dd/mm/yyyy");
 	    labelFeedback.setForeground(Color.RED);
-	    return;
 	} catch (Exception generalEx)
 	{
 	    labelFeedback.setText("Ocorreu um erro");
 	    labelFeedback.setForeground(Color.RED);
-	    return;
 	}
 
 
@@ -398,7 +376,7 @@ public class EventList extends javax.swing.JFrame
 	    
 	
 
-	populateEventTable(client.getAgenda());
+	populateEventTable(client.findEvent(null));
     }//GEN-LAST:event_buttonSearchActionPerformed
 
     private void buttonApagarActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonApagarActionPerformed
@@ -406,8 +384,7 @@ public class EventList extends javax.swing.JFrame
 	try
 	{
 
-	    Message m = client.deleteEvent(Integer.parseInt(textFieldID.getText()));
-	    client.processMessage(m);
+	    client.deleteEvent(Integer.parseInt(textFieldID.getText()));
 	    client.setAgenda();
 
 	} catch (Exception e)
@@ -420,7 +397,7 @@ public class EventList extends javax.swing.JFrame
 	labelFeedback.setText("Evento eliminado com sucesso");
 	labelFeedback.setForeground(Color.GREEN);
 	//refresh results table
-	populateEventTable(client.getAgenda());
+	populateEventTable(client.findEvent(null));
     }//GEN-LAST:event_buttonApagarActionPerformed
 
     private void textFieldIDFocusLost(java.awt.event.FocusEvent evt)//GEN-FIRST:event_textFieldIDFocusLost
@@ -430,7 +407,8 @@ public class EventList extends javax.swing.JFrame
 	if (!Id.equals(""))
 	{
 	    Event selectedEvent = null;
-	    for (Event e : client.getAgenda().getEvents())
+	    //TODO: confirmar que é a null
+	    for (Event e : client.findEvent(null))
 	    {
 		if (e.getId() == Integer.parseInt(Id))
 		{
