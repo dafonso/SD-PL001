@@ -18,20 +18,20 @@ public class Main {
     /**
      * Host name of the server.
      */
-    static private String hostName;
+    //static private String hostName;
     /**
      * Port number where the server is listening.
      */
-    static private int portNumber;
+    //static private int portNumber;
     private static Scanner s;
 
     public static void main(String[] args) throws ParseException {
         s = new Scanner(System.in);
-        String[][] pool = CommonProps.getServerPool();
+        
         try {
-            hostName = InetAddress.getLocalHost().getHostAddress();
-            portNumber = CommonProps.getServerPort();
-            Client client = new Client(hostName, portNumber);
+            //hostName = InetAddress.getLocalHost().getHostAddress();
+            //portNumber = CommonProps.getServerPort();
+            //Client client = new Client(hostName, portNumber);
             mainLoop(client);
         } catch (java.net.UnknownHostException e) {
             System.err.println("Error connecting to server");

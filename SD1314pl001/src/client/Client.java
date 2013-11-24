@@ -8,13 +8,19 @@ import common.Agenda;
 import common.Event;
 import common.Message;
 import common.MessageType;
+import common.properties.CommonProps;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
+import server.statics.RemoteBullyPassiveNode;
+
 
 /**
  *
@@ -26,32 +32,61 @@ public class Client {
     //final private ObjectOutputStream out;
     //final private ObjectInputStream in;
     private Agenda agenda;
-    private String host;
-    private int port;
+    //private String host;
+    //private int port;
+    private String[][] serverPool;
+    private RemoteBullyPassiveNode clientStub;
 
     public Client(String hostname, int portNumber) throws java.net.UnknownHostException, IOException {
-        this.host = hostname;
-        this.port = portNumber;
+        this.serverPool = CommonProps.getServerPool();
+        //this.host = hostname;
+        //this.port = portNumber;
 //        this.socket = new Socket(hostname, portNumber);
 //        this.out = new ObjectOutputStream(this.socket.getOutputStream());
         //      this.in = new ObjectInputStream(this.socket.getInputStream());
         this.agenda = new Agenda();
+        System.out.println("A iniciar o Cliente...");// Vamos tentar aceder ao Servidor de Registos para recolher a interface
+        try {
+            connect2MasterServer();
+        } catch (NoSuchServerOn e) {
+            System.out.println("Falhou o arranque do Cliente");
+            System.out.println("Não existe nenhum servidor ligado!!");
+            System.exit(0);
+        }
     }
 
-    public Message addEvent(Event e) {
-        return new Message(MessageType.CSAdd, e);
+    private void connect2MasterServer() throws NoSuchServerOn {
+        int i = 0;
+        while (i < serverPool.length) {
+            String getMasterName;
+            Registry registry;
+            try {
+                registry = LocateRegistry.getRegistry(serverPool[i][0]);
+                RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(serverPool[i][3]);
+                getMasterName = stub.getMasterServer().getKey();
+                this.clientStub = (RemoteBullyPassiveNode) registry.lookup(getMasterName);
+            } catch (RemoteException | NotBoundException ex) {
+                System.out.println("Não é possível aceder ao servidor");
+                i++;
+            }
+        }
+        throw new NoSuchServerOn();
     }
 
-    public Message updateEvent(Event e) {
-        return new Message(MessageType.CSUpdate, e);
+    public void addEvent(Event e) throws RemoteException {
+        clientStub.create(e);
     }
 
-    public Message deleteEvent(int id) {
-        return new Message(MessageType.CSDelete, getEvent(id));
+    public void updateEvent(Event e) throws RemoteException {
+        clientStub.update(e);
     }
 
-    public Message findEvent(Event e) {
-        return new Message(MessageType.CSFind, e);
+    public void deleteEvent(int id) throws RemoteException {
+        clientStub.delete(id);
+    }
+
+    public void findEvent(Event e) throws RemoteException {
+        clientStub.find(e);
     }
 
     public Event getEvent(int id) {

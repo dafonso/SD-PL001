@@ -20,7 +20,7 @@ public interface RemoteClientProtocol extends Remote{
     
     public boolean update(Event event) throws RemoteException;
     
-    public boolean delete(Event event) throws RemoteException;
+    public boolean delete(int id) throws RemoteException;
     
     public List<Event> find(Event event) throws RemoteException;
 }

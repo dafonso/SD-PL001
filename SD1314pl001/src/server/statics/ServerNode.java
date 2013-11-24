@@ -97,7 +97,7 @@ public class ServerNode implements RemoteBullyPassiveNode {
     }
 
     @Override
-    public NodeState getMasterServer() {
+    public NodeState getMasterServer() throws RemoteException{
         return this.master;
     }
 
