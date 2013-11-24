@@ -172,10 +172,10 @@ public class ServerNode implements RemoteBullyPassiveNode {
     }
 
     @Override
-    public boolean delete(Event event) throws RemoteException {
+    public boolean delete(int id) throws RemoteException {
         try {
             Context context = new Context();
-            int result = context.getEventDao().delete(event);
+            int result = context.getEventDao().deleteById(Integer.toString(id));
             context.close();
             return result == 1;
         } catch (SQLException e) {
