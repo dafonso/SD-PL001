@@ -57,7 +57,8 @@ public class Client {
                 i++;
             }
         }
-        //throw new NoSuchServerOn();
+        if(!masterFound && i>=serverPool.length)
+            throw new NoSuchServerOn();
     }
 
     public void addEvent(Event e) {
