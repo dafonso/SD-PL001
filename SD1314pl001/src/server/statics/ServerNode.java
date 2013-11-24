@@ -213,14 +213,14 @@ public class ServerNode implements RemoteBullyPassiveNode {
         } catch (RemoteException e) {
             System.out.println("Exception starting RMI registry: " + e);
         }
+        RemoteBullyPassiveNode stub = null;
         try {
-            RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) UnicastRemoteObject.exportObject(this, 0);
             Registry registry = LocateRegistry.getRegistry(self.getPortNumber());
+            stub = (RemoteBullyPassiveNode) UnicastRemoteObject.exportObject(this, 0);
             registry.bind(self.getKey(), stub);
             System.err.println("Server Ready");
         } catch (AlreadyBoundException e) {
             try {
-                RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) UnicastRemoteObject.exportObject(this, 0);
                 Registry registry = LocateRegistry.getRegistry(self.getPortNumber());
                 registry.rebind(self.getKey(), stub);
                 System.err.println("Server Ready");
