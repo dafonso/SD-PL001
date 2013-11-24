@@ -42,7 +42,8 @@ public class Client {
 
     private void connect2MasterServer() throws NoSuchServerOn {
         int i = 0;
-        while (i < serverPool.length) {
+        boolean masterFound = false;
+        while (!masterFound && i<serverPool.length) {
             String getMasterName;
             Registry registry;
             try {
@@ -50,12 +51,13 @@ public class Client {
                 RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(serverPool[i][3]);
                 getMasterName = stub.getMasterServer().getKey();
                 this.clientStub = (RemoteBullyPassiveNode) registry.lookup(getMasterName);
+                masterFound = true;
             } catch (RemoteException | NotBoundException ex) {
-                System.out.println("Não é possível aceder ao servidor");
+                System.out.println("Não é possível aceder ao servidor: " + ex);
                 i++;
             }
         }
-        throw new NoSuchServerOn();
+        //throw new NoSuchServerOn();
     }
 
     public void addEvent(Event e) {
@@ -103,7 +105,7 @@ public class Client {
     }
 
     public ArrayList<Event> findEvent(Event e) {
-        ArrayList<Event> eventsList = new ArrayList<> ();
+        ArrayList<Event> eventsList = new ArrayList<>();
         try {
             eventsList = clientStub.find(e);
         } catch (RemoteException ex) {
@@ -112,7 +114,7 @@ public class Client {
             } catch (NoSuchServerOn n) {
                 System.out.println("Não existe nenhum servidor ligado!!");
             }
-        } finally{
+        } finally {
             return eventsList;
         }
     }

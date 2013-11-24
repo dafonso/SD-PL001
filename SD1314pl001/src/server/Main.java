@@ -36,14 +36,6 @@ public class Main {
                 RemoteBullyPassiveNode server = new ServerNode();
                 state.setObject(server);
                 obj.getPool().add(state);
-                if (obj.getMaster() == null) {
-                    try {
-                        server.alive();
-                        obj.setMaster(server.getMasterServer());
-                    } catch (RemoteException e) {
-                        System.out.println("Server " + state.getKey() + " is not alive!");
-                    }
-                }
             }
         }
         obj.registerRMI();

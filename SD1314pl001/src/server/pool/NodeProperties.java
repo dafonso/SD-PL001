@@ -5,11 +5,13 @@
  */
 package server.pool;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Emanuel
  */
-public class NodeProperties {
+public class NodeProperties implements Serializable{
 
     private long id;
     private String hostname;

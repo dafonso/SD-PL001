@@ -136,8 +136,12 @@ public class ServerNode implements RemoteBullyPassiveNode {
     }
 
     @Override
-    public NodeState getMasterServer() throws RemoteException {
-        return this.master;
+    public NodeProperties getMasterServer() throws RemoteException {
+        if (this.master == null) {
+            return this.self;
+        } else {
+            return this.master;
+        }
     }
 
     @Override
@@ -219,7 +223,7 @@ public class ServerNode implements RemoteBullyPassiveNode {
                 RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) UnicastRemoteObject.exportObject(this, 0);
                 Registry registry = LocateRegistry.getRegistry(self.getPortNumber());
                 registry.rebind(self.getKey(), stub);
-                System.err.println("Server exception : " + e);
+                System.err.println("Server Ready");
             } catch (RemoteException ex) {
                 System.err.println("Server exception : " + ex);
             }
