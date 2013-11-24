@@ -185,7 +185,7 @@ public class ServerNode implements RemoteBullyPassiveNode {
     }
 
     @Override
-    public List<Event> find(Event event) throws RemoteException {
+    public ArrayList<Event> find(Event event) throws RemoteException {
         try {
             Context context = new Context();
             ArrayList<Event> result;
