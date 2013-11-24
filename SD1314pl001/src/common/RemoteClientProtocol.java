@@ -8,6 +8,7 @@ package common;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,5 +23,5 @@ public interface RemoteClientProtocol extends Remote{
     
     public boolean delete(int id) throws RemoteException;
     
-    public List<Event> find(Event event) throws RemoteException;
+    public ArrayList<Event> find(Event event) throws RemoteException;
 }
