@@ -6,6 +6,7 @@
 package server.statics;
 
 import common.Event;
+import java.io.Serializable;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -27,7 +28,7 @@ import server.pool.NodeState;
  *
  * @author Emanuel
  */
-public class ServerNode implements RemoteBullyPassiveNode {
+public class ServerNode implements RemoteBullyPassiveNode,Serializable {
 
     private ServerState state;
     private NodeProperties self;
