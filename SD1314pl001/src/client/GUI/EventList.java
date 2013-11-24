@@ -34,8 +34,6 @@ public class EventList extends javax.swing.JFrame
     };
 
     private final Client client;
-    private String hostName;
-    private int portNumber;
 
     public EventList()
     {
