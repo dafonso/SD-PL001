@@ -14,8 +14,8 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import server.statics.RemoteBullyPassiveNode;
-
 
 /**
  *
@@ -23,22 +23,12 @@ import server.statics.RemoteBullyPassiveNode;
  */
 public class Client {
 
-    //final private Socket socket;
-    //final private ObjectOutputStream out;
-    //final private ObjectInputStream in;
-    private Agenda agenda;
-    //private String host;
-    //private int port;
     private String[][] serverPool;
     private RemoteBullyPassiveNode clientStub;
+    private Agenda agenda;
 
-    public Client()  {
+    public Client() {
         this.serverPool = CommonProps.getServerPool();
-        //this.host = hostname;
-        //this.port = portNumber;
-//        this.socket = new Socket(hostname, portNumber);
-//        this.out = new ObjectOutputStream(this.socket.getOutputStream());
-        //      this.in = new ObjectInputStream(this.socket.getInputStream());
         this.agenda = new Agenda();
         System.out.println("A iniciar o Cliente...");// Vamos tentar aceder ao Servidor de Registos para recolher a interface
         try {
@@ -68,26 +58,63 @@ public class Client {
         throw new NoSuchServerOn();
     }
 
-    public void addEvent(Event e) throws RemoteException {
-        clientStub.create(e);
+    public void addEvent(Event e) {
+        try {
+            clientStub.create(e);
+        } catch (RemoteException ex) {
+            try {
+                connect2MasterServer();
+            } catch (NoSuchServerOn n) {
+                System.out.println("Não existe nenhum servidor ligado!!");
+            }
+        }
     }
 
-    public void updateEvent(Event e) throws RemoteException {
-       if(clientStub.update(e))
-           System.out.println("O evento foi actualizado com sucesso!");
-        else
-           System.out.println("Ocorreu um erro e o evento não foi actualizado!"); 
+    public void updateEvent(Event e) {
+        try {
+            if (clientStub.update(e)) {
+                System.out.println("O evento foi actualizado com sucesso!");
+            } else {
+                System.out.println("Ocorreu um erro e o evento não foi actualizado!");
+            }
+        } catch (RemoteException ex) {
+            try {
+                connect2MasterServer();
+            } catch (NoSuchServerOn n) {
+                System.out.println("Não existe nenhum servidor ligado!!");
+            }
+        }
     }
 
-    public void deleteEvent(int id) throws RemoteException {
-        if(clientStub.delete(id))
-           System.out.println("O evento foi apagado com sucesso!");
-        else
-           System.out.println("Ocorreu um erro e o evento não foi apagado!"); 
+    public void deleteEvent(int id) {
+        try {
+            if (clientStub.delete(id)) {
+                System.out.println("O evento foi apagado com sucesso!");
+            } else {
+                System.out.println("Ocorreu um erro e o evento não foi apagado!");
+            }
+        } catch (RemoteException ex) {
+            try {
+                connect2MasterServer();
+            } catch (NoSuchServerOn n) {
+                System.out.println("Não existe nenhum servidor ligado!!");
+            }
+        }
     }
 
-    public List<Event> findEvent(Event e) throws RemoteException {
-        return clientStub.find(e);
+    public ArrayList<Event> findEvent(Event e) {
+        ArrayList<Event> eventsList = new ArrayList<> ();
+        try {
+            eventsList = clientStub.find(e);
+        } catch (RemoteException ex) {
+            try {
+                connect2MasterServer();
+            } catch (NoSuchServerOn n) {
+                System.out.println("Não existe nenhum servidor ligado!!");
+            }
+        } finally{
+            return eventsList;
+        }
     }
 
     public Event getEvent(int id) {
@@ -101,7 +128,7 @@ public class Client {
         return event;
     }
 
-    public void setAgenda() throws RemoteException {
+    public void setAgenda() {
         agenda.setEvents(new HashSet((ArrayList<Event>) findEvent(null)));
     }
 
