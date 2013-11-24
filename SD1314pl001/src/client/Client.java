@@ -19,6 +19,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import server.statics.RemoteBullyPassiveNode;
 
 
@@ -37,7 +38,7 @@ public class Client {
     private String[][] serverPool;
     private RemoteBullyPassiveNode clientStub;
 
-    public Client(String hostname, int portNumber) throws java.net.UnknownHostException, IOException {
+    public Client()  {
         this.serverPool = CommonProps.getServerPool();
         //this.host = hostname;
         //this.port = portNumber;
@@ -78,15 +79,21 @@ public class Client {
     }
 
     public void updateEvent(Event e) throws RemoteException {
-        clientStub.update(e);
+       if(clientStub.update(e))
+           System.out.println("O evento foi actualizado com sucesso!");
+        else
+           System.out.println("Ocorreu um erro e o evento não foi actualizado!"); 
     }
 
     public void deleteEvent(int id) throws RemoteException {
-        clientStub.delete(id);
+        if(clientStub.delete(id))
+           System.out.println("O evento foi apagado com sucesso!");
+        else
+           System.out.println("Ocorreu um erro e o evento não foi apagado!"); 
     }
 
-    public void findEvent(Event e) throws RemoteException {
-        clientStub.find(e);
+    public List<Event> findEvent(Event e) throws RemoteException {
+        return clientStub.find(e);
     }
 
     public Event getEvent(int id) {
@@ -100,57 +107,8 @@ public class Client {
         return event;
     }
 
-    public void processMessage(Message m) {
-        //      this.in = new ObjectInputStream(this.socket.getInputStream());
-
-        try {
-            Socket socket = new Socket(host, port);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            out.writeObject(m);
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-            Message result = (Message) in.readObject();
-            processReceivedMessage(result);
-        } catch (Exception ex) {
-            System.err.println("Error sending message");
-        }
-        /*
-         try {
-         //   m = (Message) this.in.readObject();
-         processReceivedMessage(m);
-         } 
-         catch (ClassNotFoundException c) {
-         System.err.println("Server sent an invalid object");
-         } 
-         catch (IOException e) {
-         System.err.println("Error reading response message");
-         }*/
-    }
-
-    public void processReceivedMessage(Message msg) {
-        switch (msg.getType()) {
-            case SCAdd:
-                setAgenda();
-                break;
-            case SCUpdate:
-                setAgenda();
-                break;
-            case SCDelete:
-                if ((boolean) msg.getData()) {
-                    System.out.println("O evento foi apagado com sucesso!");
-                    setAgenda();
-                } else {
-                    System.out.println("Ocorreu um erro e o evento não foi apagado!");
-                }
-                break;
-            case SCFind:
-                agenda.setEvents(new HashSet((ArrayList<Event>) msg.getData()));
-                break;
-
-        }
-    }
-
-    public void setAgenda() {
-        processMessage(findEvent(null));
+    public void setAgenda() throws RemoteException {
+        agenda.setEvents(new HashSet((ArrayList<Event>) findEvent(null)));
     }
 
     public String showAgenda() {
