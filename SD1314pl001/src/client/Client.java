@@ -6,13 +6,7 @@ package client;
 
 import common.Agenda;
 import common.Event;
-import common.Message;
-import common.MessageType;
 import common.properties.CommonProps;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;

@@ -1,9 +1,6 @@
 package client;
 
 import common.Event;
-import common.Message;
-import common.properties.CommonProps;
-import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
