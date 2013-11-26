@@ -245,7 +245,8 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
         private MasterCheckup() {
         }
 
-        @Override
+        //task that checks it master is alive. if not, it holds an election
+	@Override
         public void run() {
             try {
                 System.out.println("Master Checkup : " + master.getKey());
