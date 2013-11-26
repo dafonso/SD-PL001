@@ -34,6 +34,7 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
     private NodeProperties self;
     private NodeState master;
     private List<NodeState> pool;
+    //timer to check if master is alive
     private Timer mcTimer;
 
     public ServerNode() {
@@ -72,6 +73,7 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
         }
     }
 
+    //TODO: isto é para manter public?
     @Override
     public void coordinator(long id) throws RemoteException {
         for (NodeState server : pool) {
@@ -106,7 +108,8 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
                 }
             }
         }
-        if (count == 0) {
+        //no other server has a higher ID -> this server will be the new master
+	if (count == 0) {
             for (NodeState server : pool) {
                 try {
                     Registry registry = LocateRegistry.getRegistry(server.getHostname(), server.getPortNumber());

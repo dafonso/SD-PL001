@@ -1,11 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package client.GUI;
 
 import client.Client;
+import client.FeedBack;
 import common.Event;
 import common.Message;
 import java.awt.Color;
@@ -13,60 +9,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.table.DefaultTableModel;
 
-/**
- *
- * @author cv
- */
 public class EventList extends javax.swing.JFrame
 {
-
-    private static final String[] COLUMNS = new String[]
-    {
-	"ID",
-	"Data de Início",
-	"Data de Fim",
-	"Título",
-	"Descrição",
-	"Criado Em",
-	"Alterado Em"
-    };
-
-    private final Client client;
-
-    public EventList()
-    {
-	initComponents();
-
-	client = new Client();
-	client.setAgenda();
-	populateEventTable(client.findEvent(null));
-
-    }
-
-    private void populateEventTable(ArrayList<Event> eventos)
-    {
-
-	DefaultTableModel model = new DefaultTableModel(COLUMNS, 0);
-
-	for (Event e : eventos)
-	{
-	    String[] row = new String[COLUMNS.length];
-	    row[0] = Integer.toString(e.getId());
-	    row[1] = e.getStart() != null ? new SimpleDateFormat("yyyy-MM-dd kk:mm:ss").format(e.getStart()) : "";
-	    row[2] = e.getEnd() != null ? new SimpleDateFormat("yyyy-MM-dd kk:mm:ss").format(e.getEnd()) : "";
-	    row[3] = e.getTitle();
-	    row[4] = e.getDescription();
-	    row[5] = e.getCreatedAt() != null ? new SimpleDateFormat("yyyy-MM-dd kk:mm:ss").format(e.getCreatedAt()) : "";
-	    row[6] = e.getModifiedAt() != null ? new SimpleDateFormat("yyyy-MM-dd kk:mm:ss").format(e.getModifiedAt()) : "";
-
-	    model.addRow(row);
-	}
-
-	EventTable.setModel(model);
-
-    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -298,61 +246,48 @@ public class EventList extends javax.swing.JFrame
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-
-    
     private void buttonGravarActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonGravarActionPerformed
     {//GEN-HEADEREND:event_buttonGravarActionPerformed
 
 	try
 	{
-	    Date dataInicio = new SimpleDateFormat("dd/MM/yyyy").parse(textFieldDataInicio.getText());
-	    Date dateFim = new SimpleDateFormat("dd/MM/yyyy").parse(textFieldDataFim.getText());
+	    Date dataInicio = new SimpleDateFormat(DATE_FORMAT).parse(textFieldDataInicio.getText());
+	    Date dateFim = new SimpleDateFormat(DATE_FORMAT).parse(textFieldDataFim.getText());
 	    String titulo = textFieldTitulo.getText();
 	    String descricao = textAreaDescricao.getText();
 	    String ID;
 	    Event e;
-	    Message m;
+	    FeedBack fb;
 	    // if new event
 	    if (textFieldID.getText().equals(""))
 	    {
 		e = new Event(dataInicio, dateFim, titulo, descricao);
-		client.addEvent(e);
-		labelFeedback.setText("Evento criado com sucesso");
+		fb = client.addEvent(e);
 	    }
 	    else
 	    {
 		ID = textFieldID.getText();
-
 		e = new Event(dataInicio, dateFim, titulo, descricao);
 		e.setId(Integer.parseInt(ID));
-		//TODO: ir buscar feedback
-		//m = client.updateEvent(e);
-		labelFeedback.setText("Evento modificado com sucesso");
+		fb = client.updateEvent(e);
 	    }
-
-	    //TODO: ir buscar feedback
-	    //client.processMessage(m);
+	    
 	    client.setAgenda();
-
-	    labelFeedback.setForeground(Color.GREEN);
-	    //clear form
-	    textFieldID.setText("");
-	    textFieldDataInicio.setText("");
-	    textFieldDataFim.setText("");
-	    textFieldTitulo.setText("");
-	    textAreaDescricao.setText("");
+	    
+	    setFeedBack(fb);
+	    if (fb.isSuccess()){
+	    clearForm();
+	    }
 	    //refresh results table
 	    populateEventTable(client.findEvent(null));
 
 	} catch (ParseException ex)
 	{
-	    labelFeedback.setText("Erro ao criar Evento. O formato da data é dd/mm/yyyy");
-	    labelFeedback.setForeground(Color.RED);
+	    setFeedBack("Erro ao criar Evento. O formato da data é yyyy/mm/dd hh:mm:ss", Color.RED);
 	} catch (Exception generalEx)
 	{
-	    labelFeedback.setText("Ocorreu um erro");
-	    labelFeedback.setForeground(Color.RED);
-	}
+	    setFeedBack("Ocorreu um erro", Color.RED);
+	} 
 
 
     }//GEN-LAST:event_buttonGravarActionPerformed
@@ -361,80 +296,67 @@ public class EventList extends javax.swing.JFrame
     {//GEN-HEADEREND:event_buttonSearchActionPerformed
 	//        System.out.println("Pesquisar por:\n1 - Data Inicio\n2 - Data Fim\n"
 	//                            + "3 - Titulo\n4 - Descrição");
+
+	ArrayList<Event> eventos;
+
 	if (textFieldSearch.getText().equals(""))
 	{
 	    client.setAgenda();
+	    eventos = client.findEvent(null);
 	}
 	else
 	{
 	    Event e = new Event();
 	    e.setTitle(textFieldSearch.getText());
-	    ArrayList<Event> eventos = client.findEvent(e);
+	    eventos = client.findEvent(e);
 	}
-	    
-	
 
-	populateEventTable(client.findEvent(null));
+	populateEventTable(eventos);
     }//GEN-LAST:event_buttonSearchActionPerformed
 
     private void buttonApagarActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonApagarActionPerformed
     {//GEN-HEADEREND:event_buttonApagarActionPerformed
-	try
-	{
-
-	    client.deleteEvent(Integer.parseInt(textFieldID.getText()));
+	
+	    FeedBack fb = client.deleteEvent(Integer.parseInt(textFieldID.getText()));
 	    client.setAgenda();
+	    setFeedBack(fb);
+	    //refresh results table
+	    populateEventTable(client.findEvent(null));
+	
 
-	} catch (Exception e)
-	{
-	    labelFeedback.setText("Erro ao eliminar Evento");
-	    labelFeedback.setForeground(Color.RED);
-	    return;
-	}
 
-	labelFeedback.setText("Evento eliminado com sucesso");
-	labelFeedback.setForeground(Color.GREEN);
-	//refresh results table
-	populateEventTable(client.findEvent(null));
     }//GEN-LAST:event_buttonApagarActionPerformed
 
     private void textFieldIDFocusLost(java.awt.event.FocusEvent evt)//GEN-FIRST:event_textFieldIDFocusLost
     {//GEN-HEADEREND:event_textFieldIDFocusLost
 	String Id = textFieldID.getText();
-	
+
 	if (!Id.equals(""))
 	{
-	    Event selectedEvent = null;
-	    //TODO: confirmar que é a null
-	    for (Event e : client.findEvent(null))
+	    Event resultEvent = client.getEvent(Integer.parseInt(Id));
+
+	    if (resultEvent != null)
 	    {
-		if (e.getId() == Integer.parseInt(Id))
-		{
-		    selectedEvent = e;
-		}
-	    }
-	    if (selectedEvent != null){
-	    
-		String startDateString = 
-			new SimpleDateFormat("yyyy-MM-dd kk:mm:ss").format(
-				selectedEvent.getStart());
-		String endDateString = 
-			new SimpleDateFormat("yyyy-MM-dd kk:mm:ss").format(
-				selectedEvent.getEnd());
-		
+		String startDateString
+			= new SimpleDateFormat(DATE_FORMAT).format(
+				resultEvent.getStart());
+		String endDateString
+			= new SimpleDateFormat(DATE_FORMAT).format(
+				resultEvent.getEnd());
+
 		textFieldDataInicio.setText(startDateString);
 		textFieldDataFim.setText(endDateString);
-		textFieldTitulo.setText(selectedEvent.getTitle());
-		textAreaDescricao.setText(selectedEvent.getDescription());
-		
-		
-	    } else {
-	    
+		textFieldTitulo.setText(resultEvent.getTitle());
+		textAreaDescricao.setText(resultEvent.getDescription());
+	    }
+	    else
+	    {
+
 		textFieldDataInicio.setText("");
 		textFieldDataFim.setText("");
 		textFieldTitulo.setText("");
 		textAreaDescricao.setText("");
-	    
+
 	    }
 	}
 
@@ -507,4 +429,82 @@ public class EventList extends javax.swing.JFrame
     private javax.swing.JTextField textFieldSearch;
     private javax.swing.JTextField textFieldTitulo;
     // End of variables declaration//GEN-END:variables
+
+private static final String DATE_FORMAT = "yyyy/MM/dd kk:mm:ss";
+    private static final int FEEDBACK_SECONDS = 3;
+    private static final String[] COLUMNS = new String[]
+    {
+	"ID",
+	"Data de Início",
+	"Data de Fim",
+	"Título",
+	"Descrição",
+    };
+
+    private final Client client;
+    
+
+    public EventList()
+    {
+	initComponents();
+
+	client = new Client();
+	client.setAgenda();
+	populateEventTable(client.findEvent(null));
+
+    }
+
+    private void populateEventTable(ArrayList<Event> eventos)
+    {
+
+	DefaultTableModel model = new DefaultTableModel(COLUMNS, 0);
+
+	for (Event e : eventos)
+	{
+	    String[] row = new String[COLUMNS.length];
+	    row[0] = Integer.toString(e.getId());
+	    row[1] = e.getStart() != null ? new SimpleDateFormat(DATE_FORMAT).format(e.getStart()) : "";
+	    row[2] = e.getEnd() != null ? new SimpleDateFormat(DATE_FORMAT).format(e.getEnd()) : "";
+	    row[3] = e.getTitle();
+	    row[4] = e.getDescription();
+
+	    model.addRow(row);
+	}
+
+	EventTable.setModel(model);
+
+    }
+    
+    private void setFeedBack(String text, Color color){
+    
+	labelFeedback.setText(text);
+	labelFeedback.setForeground(color);
+	
+	//clear feedback
+	new Timer().schedule(new TimerTask() {
+	@Override
+        public void run() { labelFeedback.setText(""); }
+     }, FEEDBACK_SECONDS * 1000);
+    }
+    
+    private void setFeedBack(FeedBack fb){
+	
+	Color c = fb.isSuccess() ? Color.GREEN : Color.RED;
+	setFeedBack(fb.getDescription(), c);
+    }
+
+    private void clearForm()
+    {
+	textFieldID.setText("");
+	textFieldDataInicio.setText("");
+	textFieldDataFim.setText("");
+	textFieldTitulo.setText("");
+	textAreaDescricao.setText("");
+    }
+   
+
+
+
+
+
 }
