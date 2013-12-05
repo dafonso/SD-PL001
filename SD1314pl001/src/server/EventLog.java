@@ -20,9 +20,9 @@ public class EventLog implements Serializable {
 
     @DatabaseField(generatedId = true, allowGeneratedIdInsert = true)
     private int id;
-    @DatabaseField()
+    @DatabaseField(canBeNull = false)
     private Operation operationType;
-    @DatabaseField()
+    @DatabaseField(canBeNull = false)
     private int eventId;
     @DatabaseField()
     private Date eventStart;
@@ -37,6 +37,9 @@ public class EventLog implements Serializable {
     @DatabaseField()
     private Date eventModifiedAt;
 
+    public EventLog(){
+	id = 0;
+    }
 
     public enum Operation {        
         createOrUpdate,
@@ -74,7 +77,24 @@ public class EventLog implements Serializable {
     {
 	this.operationType = operationType;
     }
+
+    //needed for delete event operation
+    public void setEventId(int eventId)
+    {
+	this.eventId = eventId;
+    }
     
     
+    
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder("eventLog ");
+        sb.append(id).append(" ");
+        sb.append(operationType);
+	sb.append(id).append(" - ");
+	sb.append(this.getEventFromLog().toString());
+        return sb.toString();
+        
+    }
 
 }
