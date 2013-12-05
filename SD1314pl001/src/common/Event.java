@@ -20,17 +20,17 @@ public class Event implements Serializable{
 
     @DatabaseField(generatedId = true,allowGeneratedIdInsert = true)
     private int id;
-    @DatabaseField()
+    @DatabaseField(canBeNull = false)
     private Date start;
-    @DatabaseField()
+    @DatabaseField(canBeNull = false)
     private Date end;
-    @DatabaseField()
+    @DatabaseField(canBeNull = false)
     private String title;
-    @DatabaseField()
+    @DatabaseField(canBeNull = false)
     private String description;
-    @DatabaseField()
+    @DatabaseField(canBeNull = false)
     private Date createdAt;
-    @DatabaseField()
+    @DatabaseField(canBeNull = false)
     private Date modifiedAt;
 
     public Event(){
