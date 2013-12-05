@@ -156,8 +156,16 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
             event.setCreatedAt(now);
             event.setModifiedAt(now);
             event.setId(0);
-            context.getEventDao().create(event);
-            context.close();
+            int eventId = context.getEventDao().create(event);
+	    //TODO: verificar que é necessário
+	    event.setId(eventId);
+	    
+	    EventLog eventLog = new EventLog();
+	    eventLog.setEventToLog(event);
+	    eventLog.setOperationType(EventLog.Operation.createOrUpdate);
+	    context.getEventLogDao().create(eventLog);
+            
+	    context.close();
             return event;
         } catch (SQLException e) {
             System.err.println(e);
@@ -170,9 +178,16 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
         try {
             Context context = new Context();
             event.setModifiedAt(new Date());
-            int result = context.getEventDao().update(event);
-            context.close();
-            return result == 1;
+            int resultEvent = context.getEventDao().update(event);
+	    
+	    EventLog eventLog = new EventLog();
+	    eventLog.setEventToLog(event);
+	    eventLog.setOperationType(EventLog.Operation.createOrUpdate);
+	    int resultLog = context.getEventLogDao().create(eventLog);
+            
+	    context.close();
+            
+	    return (resultEvent + resultLog) == 2;
         } catch (SQLException e) {
             System.err.println(e);
             return false;
@@ -183,9 +198,15 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
     public boolean delete(int id) throws RemoteException {
         try {
             Context context = new Context();
-            int result = context.getEventDao().deleteById(Integer.toString(id));
-            context.close();
-            return result == 1;
+            int resultEvent = context.getEventDao().deleteById(Integer.toString(id));
+            
+	    EventLog eventLog = new EventLog();
+	    eventLog.setEventId(id);
+	    eventLog.setOperationType(EventLog.Operation.delete);
+	    int resultLog = context.getEventLogDao().create(eventLog);
+	    
+	    context.close();
+            return (resultEvent + resultLog) == 2;
         } catch (SQLException e) {
             System.err.println(e);
             return false;
