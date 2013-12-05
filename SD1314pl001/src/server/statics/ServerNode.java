@@ -243,14 +243,11 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
         }
     }
 
-    private Date getLastDbUpdate(){
+    private Date getLatestLogDate(){
 	 try {
             Context context = new Context();
-	    Event latestUpdatedEvent =
-		context.getEventDao().queryBuilder().orderBy("modifiedAt", false)
-		   .queryForFirst();
-            context.close();
-            return latestUpdatedEvent.getModifiedAt();
+	    EventLog latestLog = context.getEventLogDao().queryBuilder().orderBy("id", false).queryForFirst();
+	    return latestLog.getEventFromLog().getModifiedAt();
         } catch (SQLException e) {
             System.err.println(e);
             return null;
