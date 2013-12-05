@@ -10,6 +10,7 @@ import common.Event;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import server.Context;
+import server.EventLog;
 
 /**
  *
@@ -21,13 +22,9 @@ public class tests
     
     try {
             Context context = new Context();
-            ArrayList<Event> result;
-            // query for all accounts that have that password
-	    Event latestUpdatedEvent =
-		context.getEventDao().queryBuilder().orderBy("modifiedAt", false)
-		   .queryForFirst();
+	    EventLog latestLog = context.getEventLogDao().queryBuilder().orderBy("id", false).queryForFirst();
+	    Event latestEvent = latestLog.getEventFromLog();
             context.close();
-            System.out.println(latestUpdatedEvent.getId());
 	    System.out.println("************************************************");
         } catch (SQLException e) {
             System.err.println(e);
