@@ -156,9 +156,7 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
             event.setCreatedAt(now);
             event.setModifiedAt(now);
             event.setId(0);
-            int eventId = context.getEventDao().create(event);
-	    //TODO: verificar que é necessário
-	    event.setId(eventId);
+            context.getEventDao().create(event);
 	    
 	    EventLog eventLog = new EventLog();
 	    eventLog.setEventToLog(event);
@@ -267,13 +265,31 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
     private Date getLatestLogDate(){
 	 try {
             Context context = new Context();
-	    EventLog latestLog = context.getEventLogDao().queryBuilder().orderBy("id", false).queryForFirst();
-	    return latestLog.getEventFromLog().getModifiedAt();
+	    EventLog latestLog = context.getEventLogDao().queryBuilder().
+		    orderBy("logCreatedAt", false).queryForFirst();
+	    return latestLog != null ? latestLog.getLogCreatedAt() : new Date(0);
         } catch (SQLException e) {
             System.err.println(e);
             return null;
         }
 
+    }
+
+    /**
+     * Method that updates the database, based on the logs and the master's logs
+     */
+    public void updateDataBase()
+    {
+	throw new UnsupportedOperationException();
+	// block master database from accepting changes
+	
+	// get new logs
+	//Date latestLogDate = this.getLatestLogDate();
+	//master.getObject();
+	// update db from new logs
+	
+	// unblock master database
+	
     }
     
     private class MasterCheckup extends TimerTask {
