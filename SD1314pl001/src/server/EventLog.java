@@ -19,9 +19,11 @@ import java.util.Date;
 public class EventLog implements Serializable {
 
     @DatabaseField(generatedId = true, allowGeneratedIdInsert = true)
-    private int id;
+    private final int id;
     @DatabaseField(canBeNull = false)
     private Operation operationType;
+    @DatabaseField(canBeNull = false)
+    private final Date logCreatedAt;
     @DatabaseField(canBeNull = false)
     private int eventId;
     @DatabaseField()
@@ -39,6 +41,7 @@ public class EventLog implements Serializable {
 
     public EventLog(){
 	id = 0;
+	logCreatedAt = new Date();
     }
 
     public enum Operation {        
@@ -83,14 +86,15 @@ public class EventLog implements Serializable {
     {
 	this.eventId = eventId;
     }
-    
-    
+
+    public Date getLogCreatedAt()
+    {
+	return logCreatedAt;
+    }
     
     @Override
     public String toString(){
         StringBuilder sb = new StringBuilder("eventLog ");
-        sb.append(id).append(" ");
-        sb.append(operationType);
 	sb.append(id).append(" - ");
 	sb.append(this.getEventFromLog().toString());
         return sb.toString();
