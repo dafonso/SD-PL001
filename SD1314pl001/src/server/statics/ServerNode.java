@@ -28,7 +28,7 @@ import server.pool.NodeState;
  *
  * @author Emanuel
  */
-public class ServerNode implements RemoteBullyPassiveNode,Serializable {
+public class ServerNode implements RemoteBullyPassiveNode, Serializable {
 
     private ServerState state;
     private NodeProperties self;
@@ -109,7 +109,7 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
             }
         }
         //no other server has a higher ID -> this server will be the new master
-	if (count == 0) {
+        if (count == 0) {
             for (NodeState server : pool) {
                 try {
                     Registry registry = LocateRegistry.getRegistry(server.getHostname(), server.getPortNumber());
@@ -128,15 +128,16 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
         }
         state = ServerState.upAndRunning;
     }
-
+    // slaves executam log e actualizam a db
     @Override
     public void executeRequest(EventLog log) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    // master devolve lista de logs
     @Override
     public void getUpdated(EventLog lastLog) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
     }
 
     @Override
@@ -157,13 +158,13 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
             event.setModifiedAt(now);
             event.setId(0);
             context.getEventDao().create(event);
-	    
-	    EventLog eventLog = new EventLog();
-	    eventLog.setEventToLog(event);
-	    eventLog.setOperationType(EventLog.Operation.createOrUpdate);
-	    context.getEventLogDao().create(eventLog);
-            
-	    context.close();
+
+            EventLog eventLog = new EventLog();
+            eventLog.setEventToLog(event);
+            eventLog.setOperationType(EventLog.Operation.createOrUpdate);
+            context.getEventLogDao().create(eventLog);
+
+            context.close();
             return event;
         } catch (SQLException e) {
             System.err.println(e);
@@ -177,15 +178,15 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
             Context context = new Context();
             event.setModifiedAt(new Date());
             int resultEvent = context.getEventDao().update(event);
-	    
-	    EventLog eventLog = new EventLog();
-	    eventLog.setEventToLog(event);
-	    eventLog.setOperationType(EventLog.Operation.createOrUpdate);
-	    int resultLog = context.getEventLogDao().create(eventLog);
-            
-	    context.close();
-            
-	    return (resultEvent + resultLog) == 2;
+
+            EventLog eventLog = new EventLog();
+            eventLog.setEventToLog(event);
+            eventLog.setOperationType(EventLog.Operation.createOrUpdate);
+            int resultLog = context.getEventLogDao().create(eventLog);
+
+            context.close();
+
+            return (resultEvent + resultLog) == 2;
         } catch (SQLException e) {
             System.err.println(e);
             return false;
@@ -197,13 +198,13 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
         try {
             Context context = new Context();
             int resultEvent = context.getEventDao().deleteById(Integer.toString(id));
-            
-	    EventLog eventLog = new EventLog();
-	    eventLog.setEventId(id);
-	    eventLog.setOperationType(EventLog.Operation.delete);
-	    int resultLog = context.getEventLogDao().create(eventLog);
-	    
-	    context.close();
+
+            EventLog eventLog = new EventLog();
+            eventLog.setEventId(id);
+            eventLog.setOperationType(EventLog.Operation.delete);
+            int resultLog = context.getEventLogDao().create(eventLog);
+
+            context.close();
             return (resultEvent + resultLog) == 2;
         } catch (SQLException e) {
             System.err.println(e);
@@ -262,12 +263,12 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
         }
     }
 
-    private Date getLatestLogDate(){
-	 try {
+    private Date getLatestLogDate() {
+        try {
             Context context = new Context();
-	    EventLog latestLog = context.getEventLogDao().queryBuilder().
-		    orderBy("logCreatedAt", false).queryForFirst();
-	    return latestLog != null ? latestLog.getLogCreatedAt() : new Date(0);
+            EventLog latestLog = context.getEventLogDao().queryBuilder().
+                    orderBy("logCreatedAt", false).queryForFirst();
+            return latestLog != null ? latestLog.getLogCreatedAt() : new Date(0);
         } catch (SQLException e) {
             System.err.println(e);
             return null;
@@ -278,27 +279,46 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
     /**
      * Method that updates the database, based on the logs and the master's logs
      */
-    public void updateDataBase()
-    {
-	throw new UnsupportedOperationException();
-	// block master database from accepting changes
-	
-	// get new logs
-	//Date latestLogDate = this.getLatestLogDate();
-	//master.getObject();
-	// update db from new logs
-	
-	// unblock master database
-	
+    public void updateDataBase() {
+        
+
+        for (NodeState server : pool) {
+            try {
+                Registry registry = LocateRegistry.getRegistry(server.getHostname(), server.getPortNumber());
+                RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(server.getKey());
+                master = (NodeState)stub.getMasterServer();
+                break;
+            } catch (RemoteException | NotBoundException e) {
+                System.err.println(e);
+            }
+        }
+        if (master==null){
+            holdElection();
+        }
+        try {
+            Registry registry = LocateRegistry.getRegistry(master.getHostname(), master.getPortNumber());
+            RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(master.getKey());
+            stub.getUpdated(null);
+        } catch (RemoteException | NotBoundException e) {
+            System.err.println(e);
+        }
+
+        //throw new UnsupportedOperationException();
+        // block master database from accepting changes
+        // get new logs
+        //Date latestLogDate = this.getLatestLogDate();
+        //master.getObject();
+        // update db from new logs
+        // unblock master database
     }
-    
+
     private class MasterCheckup extends TimerTask {
 
         private MasterCheckup() {
         }
 
         //task that checks it master is alive. if not, it holds an election
-	@Override
+        @Override
         public void run() {
             try {
                 System.out.println("Master Checkup : " + master.getKey());
@@ -310,5 +330,5 @@ public class ServerNode implements RemoteBullyPassiveNode,Serializable {
             }
         }
     }
-    
+
 }
