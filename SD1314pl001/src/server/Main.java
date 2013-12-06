@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.sql.SQLException;
+import java.util.Date;
 import server.pool.NodeProperties;
 import server.pool.NodeState;
 import server.statics.RemoteBullyPassiveNode;
@@ -38,6 +39,7 @@ public class Main {
                 obj.getPool().add(state);
             }
         }
+	obj.updateDataBase();
         obj.registerRMI();
         obj.holdElection();      
         String master = obj.getMaster()==null?"me":obj.getMaster().getKey();
