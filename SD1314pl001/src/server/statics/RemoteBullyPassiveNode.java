@@ -7,6 +7,8 @@ package server.statics;
 
 import common.RemoteClientProtocol;
 import java.rmi.RemoteException;
+import java.util.Date;
+import java.util.List;
 import server.EventLog;
 import server.pool.NodeProperties;
 import server.pool.NodeState;
@@ -24,9 +26,9 @@ public interface RemoteBullyPassiveNode extends RemoteNode,RemoteClientProtocol 
     public void coordinator(long id) throws RemoteException;
     
     // Passive
-    public void executeRequest(EventLog log) throws RemoteException;
+    public void executeLog(EventLog log) throws RemoteException;
     
-    public void getUpdated(EventLog lastLog) throws RemoteException;
+    public List<EventLog> getLogsToUpdate(Date lastLogDate) throws RemoteException;
     
     public NodeProperties getMasterServer() throws RemoteException;
     
