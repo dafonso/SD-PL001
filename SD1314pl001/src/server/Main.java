@@ -39,10 +39,13 @@ public class Main {
                 obj.getPool().add(state);
             }
         }
+	obj.registerRMI();
 	obj.updateDataBase();
-        obj.registerRMI();
         obj.holdElection();      
         String master = obj.getMaster()==null?"me":obj.getMaster().getKey();
         System.out.println("Server "+obj.getSelf().getKey()+" => "+master);
+	
+	
+	
     }
 }
