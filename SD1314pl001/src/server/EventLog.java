@@ -45,7 +45,8 @@ public class EventLog implements Serializable {
     }
 
     public enum Operation {        
-        createOrUpdate,
+        create,
+	update,
         delete                
     }
     
