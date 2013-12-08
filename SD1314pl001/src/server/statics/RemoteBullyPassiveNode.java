@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 import server.EventLog;
 import server.pool.NodeProperties;
-import server.pool.NodeState;
 import server.pool.RemoteNode;
 
 /**
@@ -31,8 +30,6 @@ public interface RemoteBullyPassiveNode extends RemoteNode,RemoteClientProtocol 
     public List<EventLog> getLogsToUpdate(Date lastLogDate) throws RemoteException;
     
     public NodeProperties getMasterServer() throws RemoteException;
-    
 
-    
     
 }
