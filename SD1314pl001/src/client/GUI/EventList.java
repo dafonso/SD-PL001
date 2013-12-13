@@ -15,6 +15,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class EventList extends javax.swing.JFrame
 {
+    private static final int REFRESH_SECONDS = 3;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -23,8 +24,7 @@ public class EventList extends javax.swing.JFrame
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
         tabbedPanePesquisa = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
@@ -50,6 +50,11 @@ public class EventList extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         tabbedPanePesquisa.setPreferredSize(new java.awt.Dimension(790, 500));
 
@@ -57,10 +62,8 @@ public class EventList extends javax.swing.JFrame
 
         buttonSearch.setText("Pesquisar");
         buttonSearch.setToolTipText("");
-        buttonSearch.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        buttonSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonSearchActionPerformed(evt);
             }
         });
@@ -68,8 +71,7 @@ public class EventList extends javax.swing.JFrame
         textFieldSearch.setToolTipText("");
 
         EventTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][]
-            {
+            new Object [][] {
                 {null, null, null, null, null, null, null},
                 {null, null, null, null, null, null, null},
                 {null, null, null, null, null, null, null},
@@ -78,8 +80,7 @@ public class EventList extends javax.swing.JFrame
                 {null, null, null, null, null, null, null},
                 {null, null, null, null, null, null, null}
             },
-            new String []
-            {
+            new String [] {
                 "Title 1", "Title 2", "Title 3", "Title 4", "Title 5", "Title 6", "Title 7"
             }
         ));
@@ -133,10 +134,8 @@ public class EventList extends javax.swing.JFrame
 
         buttonGravar.setText("Gravar");
         buttonGravar.setToolTipText("");
-        buttonGravar.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        buttonGravar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonGravarActionPerformed(evt);
             }
         });
@@ -145,10 +144,8 @@ public class EventList extends javax.swing.JFrame
         textAreaDescricao.setRows(5);
         jScrollPane2.setViewportView(textAreaDescricao);
 
-        textFieldID.addFocusListener(new java.awt.event.FocusAdapter()
-        {
-            public void focusLost(java.awt.event.FocusEvent evt)
-            {
+        textFieldID.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
                 textFieldIDFocusLost(evt);
             }
         });
@@ -158,10 +155,8 @@ public class EventList extends javax.swing.JFrame
         buttonApagar.setBackground(new java.awt.Color(255, 0, 0));
         buttonApagar.setText("Apagar");
         buttonApagar.setActionCommand("");
-        buttonApagar.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        buttonApagar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonApagarActionPerformed(evt);
             }
         });
@@ -294,24 +289,9 @@ public class EventList extends javax.swing.JFrame
 
     private void buttonSearchActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonSearchActionPerformed
     {//GEN-HEADEREND:event_buttonSearchActionPerformed
-	//        System.out.println("Pesquisar por:\n1 - Data Inicio\n2 - Data Fim\n"
-	//                            + "3 - Titulo\n4 - Descrição");
 
-	ArrayList<Event> eventos;
-
-	if (textFieldSearch.getText().equals(""))
-	{
-	    client.setAgenda();
-	    eventos = client.findEvent(null);
-	}
-	else
-	{
-	    Event e = new Event();
-	    e.setTitle(textFieldSearch.getText());
-	    eventos = client.findEvent(e);
-	}
-
-	populateEventTable(eventos);
+    	refreshTable();
+        
     }//GEN-LAST:event_buttonSearchActionPerformed
 
     private void buttonApagarActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonApagarActionPerformed
@@ -363,6 +343,14 @@ public class EventList extends javax.swing.JFrame
 
     }//GEN-LAST:event_textFieldIDFocusLost
 
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        
+	new Timer().schedule(new TimerTask() {
+	@Override
+        public void run() { refreshTable(); }
+     }, REFRESH_SECONDS * 1000, REFRESH_SECONDS * 1000);
+    }//GEN-LAST:event_formWindowOpened
+
     public static void main(String args[])
     {
 	/* Set the Nimbus look and feel */
@@ -401,7 +389,7 @@ public class EventList extends javax.swing.JFrame
 	    public void run()
 	    {
 		new EventList().setVisible(true);
-
+                
 	    }
 	});
     }
@@ -500,6 +488,24 @@ private static final String DATE_FORMAT = "yyyy/MM/dd kk:mm:ss";
 	textFieldDataFim.setText("");
 	textFieldTitulo.setText("");
 	textAreaDescricao.setText("");
+    }
+
+    private void refreshTable() {
+      ArrayList<Event> eventos;
+
+	if (textFieldSearch.getText().equals(""))
+	{
+	    client.setAgenda();
+	    eventos = client.findEvent(null);
+	}
+	else
+	{
+	    Event e = new Event();
+	    e.setTitle(textFieldSearch.getText());
+	    eventos = client.findEvent(e);
+	}
+
+	populateEventTable(eventos);
     }
    
 
