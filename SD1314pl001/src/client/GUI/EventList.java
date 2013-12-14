@@ -3,7 +3,6 @@ package client.GUI;
 import client.Client;
 import client.FeedBack;
 import common.Event;
-import common.Message;
 import java.awt.Color;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
