@@ -9,6 +9,7 @@ package common;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import server.pool.NodeProperties;
 
 /**
  *
@@ -26,4 +27,6 @@ public interface RemoteClientProtocol extends Remote{
     public boolean deleteNoMulticast(int id) throws RemoteException;
     
     public ArrayList<Event> find(Event event) throws RemoteException;
+    
+    public NodeProperties getMasterServer() throws RemoteException;
 }

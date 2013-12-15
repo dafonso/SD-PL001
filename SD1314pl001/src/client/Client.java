@@ -13,7 +13,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashSet;
-import server.statics.RemoteBullyPassiveNode;
+import common.RemoteClientProtocol;
 
 /**
  *
@@ -23,7 +23,7 @@ public class Client
 {
 
     private String[][] serverPool;
-    private RemoteBullyPassiveNode clientStub;
+    private RemoteClientProtocol clientStub;
     private Agenda agenda;
 
     public Client()
@@ -53,9 +53,9 @@ public class Client
 	    try
 	    {
 		registry = LocateRegistry.getRegistry(serverPool[i][0], Integer.parseInt(serverPool[i][1]));
-		RemoteBullyPassiveNode stub = (RemoteBullyPassiveNode) registry.lookup(serverPool[i][3]);
+		RemoteClientProtocol stub = (RemoteClientProtocol) registry.lookup(serverPool[i][3]);
 		getMasterName = stub.getMasterServer().getKey();
-		this.clientStub = (RemoteBullyPassiveNode) registry.lookup(getMasterName);
+		this.clientStub = (RemoteClientProtocol) registry.lookup(getMasterName);
 		masterFound = true;
 	    } catch (RemoteException | NotBoundException ex)
 	    {
