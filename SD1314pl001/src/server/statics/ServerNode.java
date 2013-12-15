@@ -269,7 +269,7 @@ public class ServerNode implements RemoteBullyPassiveNode, Serializable
     }
 
     @Override
-    public Event create(Event event) throws RemoteException
+    public synchronized Event create(Event event) throws RemoteException
     {
 
 	event = createNoMulticast(event);
@@ -323,7 +323,7 @@ public class ServerNode implements RemoteBullyPassiveNode, Serializable
     }
 
     @Override
-    public boolean update(Event event) throws RemoteException
+    public synchronized boolean update(Event event) throws RemoteException
     {
 	//multicast this operation to the slave servers
 	for (NodeState nodeState : pool)
@@ -368,7 +368,7 @@ public class ServerNode implements RemoteBullyPassiveNode, Serializable
     }
 
     @Override
-    public boolean delete(int id) throws RemoteException
+    public synchronized boolean delete(int id) throws RemoteException
     {
 	//multicast this operation to the slave servers
 	for (NodeState nodeState : pool)
