@@ -12,7 +12,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.table.DefaultTableModel;
 
-public class EventList extends javax.swing.JFrame
+public class Main extends javax.swing.JFrame
 {
     private static final int REFRESH_SECONDS = 3;
 
@@ -369,16 +369,16 @@ public class EventList extends javax.swing.JFrame
 	    }
 	} catch (ClassNotFoundException ex)
 	{
-	    java.util.logging.Logger.getLogger(EventList.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+	    java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 	} catch (InstantiationException ex)
 	{
-	    java.util.logging.Logger.getLogger(EventList.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+	    java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 	} catch (IllegalAccessException ex)
 	{
-	    java.util.logging.Logger.getLogger(EventList.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+	    java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 	} catch (javax.swing.UnsupportedLookAndFeelException ex)
 	{
-	    java.util.logging.Logger.getLogger(EventList.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+	    java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 	}
 	//</editor-fold>
 
@@ -387,7 +387,7 @@ public class EventList extends javax.swing.JFrame
 	{
 	    public void run()
 	    {
-		new EventList().setVisible(true);
+		new Main().setVisible(true);
                 
 	    }
 	});
@@ -431,7 +431,7 @@ private static final String DATE_FORMAT = "yyyy/MM/dd kk:mm:ss";
     private final Client client;
     
 
-    public EventList()
+    public Main()
     {
 	initComponents();
 
